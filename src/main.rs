@@ -1,7 +1,11 @@
 extern crate clap;
 use clap::{Arg, App};
-use std::fs;
-// use std::fs::File;
+// use std::fs;
+
+use std::{
+    fs::File,
+    io::{prelude::*, BufReader},
+};
 
 fn main() {
     let matches = App::new("Mips Disassembler")
@@ -16,6 +20,18 @@ fn main() {
         ).get_matches();
 
     if let Some(f) = matches.value_of("file") {
-        let data = fs::read_to_string(f).expect("Unable to open file");
+        let mut file = File::open(f).expect("Unable to open file");
+
+        let mut bytes: Vec<u8> = Vec::new();
+        for byte in file.bytes() {
+            bytes.push(byte.unwrap());
+        }
+
+        println!("{:x?}", bytes);
     }
+}
+
+
+fn disassemble() {
+
 }
