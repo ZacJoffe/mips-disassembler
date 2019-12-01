@@ -78,7 +78,8 @@ fn main() {
 
         let mips: Vec<String> = disassemble(instrs);
 
-        println!("{:?}", mips);
+        // println!("{:?}", mips);
+        print_mips(mips);
     }
 }
 
@@ -167,4 +168,10 @@ fn disassemble(instrs: Vec<u32>) -> Vec<String> {
     }
 
     mips
+}
+
+fn print_mips(mips: Vec<String>) {
+    for line in mips {
+        println!("{}", line);
+    }
 }
