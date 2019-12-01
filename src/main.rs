@@ -7,15 +7,37 @@ use std::{
     io::{prelude::*, BufReader},
 };
 
+// mask don't cares off instruction to determine opcode
+enum Masks {
+    Add = 0b1111_1100_0000_0000_0000_0111_1111_1111, // add, sub, slt, sltu
+    // Sub = 0b1111_1100_0000_0000_0000_0111_1111_1111,
+    // Slt = 0b1111_1100_0000_0000_0000_0111_1111_1111,
+    // Sltu,
+    Mult = 0b1111_1100_0000_0000_1111_1111_1111_1111, // mult, multu, div, divu
+    // Multu,
+    // Div,
+    // Divu,
+    Lis = 0b1111_1111_1111_1111_0000_0111_1111_1111, // lis, mfhi, mflo
+    // Mfhi,
+    // Mflow,
+    Branch = 0b1111_1100_0000_0000_0000_0000_0000_0000, // beq, bne, lw, sw
+    // Lw,
+    // Sw,
+    // Beq,
+    // Bne,
+    Jump = 0b1111_1100_0001_1111_1111_1111_1111_1111, // jr, jalr
+    // Jalr
+}
+
 fn main() {
     let matches = App::new("Mips Disassembler")
         .version("0.1.0")
         .author("Zac J. <zacharyjoffe@gmail.com>")
-        .about("Memes strings")
+        .about("Disassembles mips")
         .arg(Arg::with_name("file")
             .short("f")
             .long("file")
-            .help("Dissassembles a given mips binary")
+            .help("Disassembles a given mips binary")
             .takes_value(true),
         ).get_matches();
 
@@ -49,6 +71,14 @@ fn convert_bytes(bytes: Vec<u8>) -> Vec<u32> {
     instrs
 }
 
-fn disassemble() {
+fn disassemble(instrs: Vec<u32>) -> Vec<String> {
+    let mut mips: Vec<String> = Vec::new();
 
+    for instr in instrs {
+        match instr {
+            _ => panic!{"Invalid binary"}
+        }
+    }
+
+    mips
 }
