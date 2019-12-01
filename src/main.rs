@@ -74,7 +74,11 @@ fn main() {
 
         let instrs: Vec<u32> = convert_bytes(bytes);
 
-        println!("{:08x?}", instrs)
+        println!("{:08x?}", instrs);
+
+        let mips: Vec<String> = disassemble(instrs);
+
+        println!("{:?}", mips);
     }
 }
 
@@ -83,7 +87,7 @@ fn convert_bytes(bytes: Vec<u8>) -> Vec<u32> {
 
     let mut i = 0;
 
-    while (i < bytes.len()) {
+    while i < bytes.len() {
         let instr: u32 = (((bytes[i] as u32) << 24) | ((bytes[i + 1] as u32) << 16) | ((bytes[i + 2] as u32) << 8) | bytes[i + 3] as u32) as u32;
         instrs.push(instr);
         i += 4;
@@ -96,8 +100,69 @@ fn disassemble(instrs: Vec<u32>) -> Vec<String> {
     let mut mips: Vec<String> = Vec::new();
 
     for instr in instrs {
+        let d: u8 = (instr >> 11) as u8 & 0x1f;
+        let s: u8 = (instr >> 21) as u8 & 0x1f;
+        let t: u8 = (instr >> 16) as u8 & 0x1f;
+        let i: u16 = instr as u16;
+
         match instr {
-            _ => panic!{"Invalid binary"}
+            x if x & Masks::Add as u32 == Opcodes::Add as u32 => {
+                mips.push(format!("add ${}, ${}, ${}", d, s, t));
+            }
+            x if x & Masks::Add as u32 == Opcodes::Sub as u32 => {
+                mips.push(format!("sub ${}, ${}, ${}", d, s, t));
+            }
+            x if x & Masks::Mult as u32 == Opcodes::Mult as u32 => {
+                mips.push(format!("mult ${}, ${}", s, t));
+            }
+            x if x & Masks::Mult as u32 == Opcodes::Multu as u32 => {
+                mips.push(format!("multu ${}, ${}", s, t));
+            }
+            x if x & Masks::Mult as u32 == Opcodes::Div as u32 => {
+                mips.push(format!("div ${}, ${}", s, t));
+            }
+            x if x & Masks::Mult as u32 == Opcodes::Divu as u32 => {
+                mips.push(format!("divu ${}, ${}", s, t));
+            }
+            x if x & Masks::Lis as u32 == Opcodes::Mfhi as u32 => {
+                mips.push(format!("mfhi ${}", d));
+            }
+            x if x & Masks::Lis as u32 == Opcodes::Mflo as u32 => {
+                mips.push(format!("mflo ${}", d));
+            }
+            x if x & Masks::Lis as u32 == Opcodes::Lis as u32 => {
+                mips.push(format!("lis ${}", d));
+            }
+            x if x & Masks::Branch as u32 == Opcodes::Lw as u32 => {
+                mips.push(format!("lw ${}, {}(${})", t, i, s));
+            }
+            x if x & Masks::Branch as u32 == Opcodes::Sw as u32 => {
+                mips.push(format!("sw ${}, {}(${})", t, i, s));
+            }
+            x if x & Masks::Add as u32 == Opcodes::Slt as u32 => {
+                mips.push(format!("slt ${}, ${}, ${}", d, s, t));
+            }
+            x if x & Masks::Add as u32 == Opcodes::Sltu as u32 => {
+                mips.push(format!("sltu ${}, ${}, ${}", d, s, t));
+            }
+            x if x & Masks::Branch as u32 == Opcodes::Beq as u32 => {
+                mips.push(format!("beq ${}, ${}, ${}", s, t, i));
+            }
+            x if x & Masks::Branch as u32 == Opcodes::Bne as u32 => {
+                mips.push(format!("bne ${}, ${}, ${}", s, t, i));
+            }
+            x if x & Masks::Jump as u32 == Opcodes::Jr as u32 => {
+                mips.push(format!("jr ${}", s));
+            }
+            x if x & Masks::Jump as u32 == Opcodes::Jalr as u32 => {
+                mips.push(format!("jalr ${}", s));
+            }
+            // .word
+            _ => {
+                // we only need the instr as a 32 bit integer for the .word directive
+                // no bit shifting necessary!
+                mips.push(format!(".word {}", instr));
+            }
         }
     }
 
