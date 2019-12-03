@@ -104,7 +104,8 @@ fn disassemble(instrs: Vec<u32>) -> Vec<String> {
         let d: u8 = (instr >> 11) as u8 & 0x1f;
         let s: u8 = (instr >> 21) as u8 & 0x1f;
         let t: u8 = (instr >> 16) as u8 & 0x1f;
-        let i: u16 = instr as u16;
+        // let i: u16 = instr as u16;
+        let i: i16 = instr as i16;
 
         match instr {
             x if x & Masks::Add as u32 == Opcodes::Add as u32 => {
