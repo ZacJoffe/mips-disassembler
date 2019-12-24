@@ -1,10 +1,7 @@
-extern crate clap;
-use clap::{Arg, App};
-// use std::fs;
-
 use std::{
+    env,
     fs::File,
-    io::{prelude::*, BufReader},
+    io::{prelude::*}
 };
 
 // mask don't cares off instruction to determine opcode
@@ -51,36 +48,34 @@ enum Opcodes {
 }
 
 fn main() {
-    let matches = App::new("Mips Disassembler")
-        .version("0.1.0")
-        .author("Zac J. <zacharyjoffe@gmail.com>")
-        .about("Disassembles mips")
-        .arg(Arg::with_name("file")
-            .short("f")
-            .long("file")
-            .help("Disassembles a given mips binary")
-            .takes_value(true),
-        ).get_matches();
-
-    if let Some(f) = matches.value_of("file") {
-        let mut file = File::open(f).expect("Unable to open file");
-
-        let mut bytes: Vec<u8> = Vec::new();
-        for byte in file.bytes() {
-            bytes.push(byte.unwrap());
-        }
-
-        println!("{:x?}", bytes);
-
-        let instrs: Vec<u32> = convert_bytes(bytes);
-
-        println!("{:08x?}", instrs);
-
-        let mips: Vec<String> = disassemble(instrs);
-
-        // println!("{:?}", mips);
-        print_mips(mips);
+    let args: Vec<String> = env::args().collect();
+    if args.len() < 2 {
+        panic!{"File location not given!"};
     }
+
+    let file_name = String::from(&args[1]);
+
+    let file = File::open(file_name);
+    let file = match file {
+        Ok(f) => f,
+        Err(e) => panic!("Couldn't load file: {}", e)
+    };
+
+    let mut bytes: Vec<u8> = Vec::new();
+    for byte in file.bytes() {
+        bytes.push(byte.unwrap());
+    }
+
+    println!("{:x?}", bytes);
+
+    let instrs: Vec<u32> = convert_bytes(bytes);
+
+    println!("{:08x?}", instrs);
+
+    let mips: Vec<String> = disassemble(instrs);
+
+    // println!("{:?}", mips);
+    print_mips(mips);
 }
 
 fn convert_bytes(bytes: Vec<u8>) -> Vec<u32> {
@@ -163,7 +158,7 @@ fn disassemble(instrs: Vec<u32>) -> Vec<String> {
             _ => {
                 // we only need the instr as a 32 bit integer for the .word directive
                 // no bit shifting necessary!
-                mips.push(format!(".word {}", instr));
+                mips.push(format!(".word {}", instr as i32));
             }
         }
     }
