@@ -4,29 +4,17 @@ use std::{
     io::{prelude::*}
 };
 
-// mask don't cares off instruction to determine opcode
+// mask "don't cares" off instruction to decode opcode
 enum Masks {
     Add = 0b1111_1100_0000_0000_0000_0111_1111_1111, // add, sub, slt, sltu
-    // Sub = 0b1111_1100_0000_0000_0000_0111_1111_1111,
-    // Slt = 0b1111_1100_0000_0000_0000_0111_1111_1111,
-    // Sltu,
     Mult = 0b1111_1100_0000_0000_1111_1111_1111_1111, // mult, multu, div, divu
-    // Multu,
-    // Div,
-    // Divu,
     Lis = 0b1111_1111_1111_1111_0000_0111_1111_1111, // lis, mfhi, mflo
-    // Mfhi,
-    // Mflow,
     Branch = 0b1111_1100_0000_0000_0000_0000_0000_0000, // beq, bne, lw, sw
-    // Lw,
-    // Sw,
-    // Beq,
-    // Bne,
     Jump = 0b1111_1100_0001_1111_1111_1111_1111_1111, // jr, jalr
-    // Jalr
 }
 
 // opcodes with all s, t, d, and i values masked off
+// these were derived from the mips manual
 enum Opcodes {
     Add = 0b0000_0000_0000_0000_0000_0000_0010_0000,
     Sub = 0b0000_0000_0000_0000_0000_0000_0010_0010,
@@ -48,11 +36,14 @@ enum Opcodes {
 }
 
 fn main() {
+    // get args, if the file isn't found then panic
     let args: Vec<String> = env::args().collect();
     if args.len() < 2 {
+        // note: probably not the best way to do this!
         panic!{"File location not given!"};
     }
 
+    // attempt to open the file name
     let file_name = String::from(&args[1]);
 
     let file = File::open(file_name);
@@ -61,29 +52,26 @@ fn main() {
         Err(e) => panic!("Couldn't load file: {}", e)
     };
 
+    // get a vector of bytes
     let mut bytes: Vec<u8> = Vec::new();
     for byte in file.bytes() {
         bytes.push(byte.unwrap());
     }
 
-    println!("{:x?}", bytes);
-
     let instrs: Vec<u32> = convert_bytes(bytes);
-
-    println!("{:08x?}", instrs);
-
     let mips: Vec<String> = disassemble(instrs);
 
-    // println!("{:?}", mips);
     print_mips(mips);
 }
 
+// coalesce 4 bytes to form a vector of u32, with each elem representing an instruction
 fn convert_bytes(bytes: Vec<u8>) -> Vec<u32> {
+    // create empty vector and looping var
     let mut instrs: Vec<u32> = Vec::new();
-
     let mut i = 0;
 
     while i < bytes.len() {
+        // join 4 contiguous bytes
         let instr: u32 = (((bytes[i] as u32) << 24) | ((bytes[i + 1] as u32) << 16) | ((bytes[i + 2] as u32) << 8) | bytes[i + 3] as u32) as u32;
         instrs.push(instr);
         i += 4;
@@ -92,14 +80,18 @@ fn convert_bytes(bytes: Vec<u8>) -> Vec<u32> {
     instrs
 }
 
+// disassembles the instructions
 fn disassemble(instrs: Vec<u32>) -> Vec<String> {
     let mut mips: Vec<String> = Vec::new();
 
+    // loop through given instructions, use pattern matching to determine the instruction
+    // append generated code to the mips vector
     for instr in instrs {
+        // calculate opcode "constants"
+        // we don't necessarily need these for every instruction but it cleans up the code doing it once
         let d: u8 = (instr >> 11) as u8 & 0x1f;
         let s: u8 = (instr >> 21) as u8 & 0x1f;
         let t: u8 = (instr >> 16) as u8 & 0x1f;
-        // let i: u16 = instr as u16;
         let i: i16 = instr as i16;
 
         match instr {
@@ -166,6 +158,8 @@ fn disassemble(instrs: Vec<u32>) -> Vec<String> {
     mips
 }
 
+// function to print the disassembled code
+// we could improve this by adding address per line
 fn print_mips(mips: Vec<String>) {
     for line in mips {
         println!("{}", line);
