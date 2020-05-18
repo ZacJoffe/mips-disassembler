@@ -1,13 +1,12 @@
-# Mips Disassembler
+# MIPS Disassembler
 
-A small disassembler for uWaterloo's subset of Mips32 used in CS241(e).
+A disassembler for uWaterloo's subset of MIPS32 used in CS241(e).
 
-Note: does not (yet!) work with object files (merl files) or any mips file assembled
-with the linker.
+Note: does not (yet!) work with object files (merl files).
 
 ## Build
 
 Run with cargo:
 ```
-cargo run /path/to/file.mips
+cargo run --release /path/to/file.mips
 ```
